@@ -1,9 +1,8 @@
-const express = require("express");
 const dotenv = require("dotenv");
 dotenv.config();
-const path = require("path");
 const mongoose = require("mongoose");
 const cities = require("./cities");
+const { places, descriptors } = require("./seedHelpers");
 const Campground = require("../models/campground");
 
 mongoose.connect(process.env.MONGO_URL, {
@@ -17,15 +16,20 @@ db.once("open", () => {
   console.log("Database connected");
 });
 
+const sample = (array) => array[Math.floor(Math.random() * array.length)];
+
 const seedDB = async () => {
   await Campground.deleteMany({});
-  for(let i = 0; i < 50; i++){
+  for (let i = 0; i < 50; i++) {
     const random1000 = Math.floor(Math.random() * 1000);
     const camp = new Campground({
-        location: `${cities[random1000].city}, ${cities[random1000].state}`
-    })
-    await camp.save()
+      location: `${cities[random1000].city}, ${cities[random1000].state}`,
+      title: `${sample(descriptors)} ${sample(places)}`,
+    });
+    await camp.save();
   }
 };
 
-seedDB();
+seedDB().then(() => {
+  mongoose.connection.close();
+});
